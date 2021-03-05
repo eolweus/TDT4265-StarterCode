@@ -23,6 +23,8 @@ def compute_loss_and_accuracy(
     """
     average_loss = 0
     accuracy = 0
+    total_loss = 0
+    total_correct = 0
     # TODO: Implement this function (Task  2a)
     with torch.no_grad():
         for (X_batch, Y_batch) in dataloader:
@@ -31,11 +33,16 @@ def compute_loss_and_accuracy(
             Y_batch = utils.to_cuda(Y_batch)
             # Forward pass the images through our model
             output_probs = model(X_batch)
-
             # Compute Loss and Accuracy
+            total_loss += loss_criterion(output_probs, Y_batch)
+            total_correct += num_correct_preds(output_probs, Y_batch)
+    average_loss = total_loss/len(dataloader)
+    accuracy = total_correct/len(dataloader.dataset)
 
     return average_loss, accuracy
 
+def num_correct_preds(preds, labels):
+    return preds.argmax(dim=1).eq(labels).sum().item()
 
 class Trainer:
 
