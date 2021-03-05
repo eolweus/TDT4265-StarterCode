@@ -8,7 +8,7 @@ from dataloaders import load_cifar10
 from trainer import Trainer, compute_loss_and_accuracy
 
 
-class conv_relu_max_pool():
+class Conv_with_pool():
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding) -> None:
         self.layer = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
@@ -36,6 +36,7 @@ class ExampleModel(nn.Module):
         # TODO: Implement this function (Task  2a)
         num_filters = [32, 64, 128]  # Set number of filters in first conv layer
         kernel_size = 5
+        padding = 2
 
 
         self.num_classes = num_classes
@@ -44,7 +45,13 @@ class ExampleModel(nn.Module):
 
         in_channels = image_channels
         for filter_size in num_filters:
-            self.new_filter_extractor.append()
+            self.new_filter_extractor.append(Conv_with_pool(
+                in_channels, 
+                filter_size, 
+                kernel_size,
+                stride=1,
+                padding=padding))
+            in_channels = filter_size
 
         # Define the convolutional layers
         self.feature_extractor = nn.Sequential(
@@ -96,11 +103,9 @@ class ExampleModel(nn.Module):
         # TODO: Implement this function (Task  2a)
         batch_size = x.shape[0]
 
-        for layer in self.feature_extractor:
-            x = layer(x)
+        x = self.new_feature_extractor(x)
         x = torch.flatten(x, start_dim=1)
-        for layer in self.classifier:
-            x = layer(x)
+        x = self.classifier(x)
         out = x
         expected_shape = (batch_size, self.num_classes)
         assert out.shape == (batch_size, self.num_classes),\

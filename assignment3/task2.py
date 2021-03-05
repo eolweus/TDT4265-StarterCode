@@ -73,12 +73,6 @@ class ExampleModel(nn.Module):
         # TODO: Implement this function (Task  2a)
         batch_size = x.shape[0]
 
-        # for layer in self.feature_extractor:
-        #     x = layer(x)
-        # x = torch.flatten(x, start_dim=1)
-        # for layer in self.classifier:
-        #     x = layer(x)
-
         x = self.feature_extractor(x)
         x = torch.flatten(x, start_dim=1)
         x = self.classifier(x)
