@@ -52,9 +52,9 @@ class ExampleModel(nn.Module):
         """
         super().__init__()
         # TODO: Implement this function (Task  2a)
-        num_filters = [16, 32, 64]  # Set number of filters in first conv layer
-        kernel_size = 5
-        self.padding = 2
+        num_filters = [32, 64, 128]  # Set number of filters in first conv layer
+        kernel_size = 3
+        self.padding = 1
 
 
         self.num_classes = num_classes
@@ -125,7 +125,6 @@ class ExampleModel(nn.Module):
             nn.Linear(in_features=self.num_output_features, out_features=64),
             nn.ReLU(),
             nn.Linear(in_features=64, out_features=num_classes),
-
         )
 
     def forward(self, x):
@@ -171,10 +170,11 @@ if __name__ == "__main__":
     utils.set_seed(0)
     epochs = 10
     batch_size = 64
-    learning_rate = 5e-2
-    early_stop_count = 4
+    learning_rate = 0.001
+    early_stop_count = 6
     dataloaders = load_cifar10(batch_size)
-    optimizer = optim.SGD
+    optimizer = optim.Adam
+    weight_decay = 1e-5
     model = ExampleModel(image_channels=3, num_classes=10)
     trainer = Trainer(
         batch_size,
@@ -183,11 +183,13 @@ if __name__ == "__main__":
         epochs,
         model,
         dataloaders,
+        weight_decay,
         optimizer
     )
     trainer.train()
-    create_plots(trainer, "task3_1")
+    create_plots(trainer, "task3_Adam_2")
     dataloader_train, dataloader_val, dataloader_test = dataloaders
+    model.eval()
     loss, train_acc = compute_loss_and_accuracy(
         dataloader_train, model, torch.nn.CrossEntropyLoss()
     )
