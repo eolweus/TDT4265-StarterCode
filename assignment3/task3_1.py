@@ -23,6 +23,7 @@ class ExampleModel(nn.Module):
         num_filters = [32, 64, 128]  # Set number of filters in first conv layer
 
         self.num_classes = num_classes
+
         # Define the convolutional layers
         self.feature_extractor = nn.Sequential(
             nn.Conv2d(
