@@ -25,6 +25,7 @@ def compute_loss_and_accuracy(
     accuracy = 0
     total_loss = 0
     total_correct = 0
+    total_images = 0
     # TODO: Implement this function (Task  2a)
     with torch.no_grad():
         for (X_batch, Y_batch) in dataloader:
@@ -36,6 +37,7 @@ def compute_loss_and_accuracy(
             # Compute Loss and Accuracy
             total_loss += loss_criterion(output_probs, Y_batch)
             total_correct += num_correct_preds(output_probs, Y_batch)
+            total_images += X_batch.shape
     average_loss = total_loss/len(dataloader)
     accuracy = total_correct/len(dataloader.dataset)
 

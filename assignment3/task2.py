@@ -1,6 +1,7 @@
 import pathlib
 import matplotlib.pyplot as plt
 import utils
+import torch
 from torch import nn
 from dataloaders import load_cifar10
 from trainer import Trainer, compute_loss_and_accuracy
@@ -31,7 +32,7 @@ class ExampleModel(nn.Module):
                 stride=1,
                 padding=2
             ),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(
                 in_channels=num_filters[0],
@@ -40,7 +41,7 @@ class ExampleModel(nn.Module):
                 stride=1,
                 padding=2
             ),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(
                 in_channels=num_filters[1],
@@ -49,10 +50,9 @@ class ExampleModel(nn.Module):
                 stride=1,
                 padding=2
             ),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
-        # The output of feature_extractor will be [batch_size, num_filters, 16, 16]
         self.num_output_features = num_filters[-1]*4*4
         # Initialize our last fully connected layer
         # Inputs all extracted features from the convolutional layers
@@ -74,9 +74,10 @@ class ExampleModel(nn.Module):
         batch_size = x.shape[0]
 
         for layer in self.feature_extractor:
-            layer(x)
+            x = layer(x)
+        x = torch.flatten(x, start_dim=1)
         for layer in self.classifier:
-            layer(x)
+            x = layer(x)
         out = x
         expected_shape = (batch_size, self.num_classes)
         assert out.shape == (batch_size, self.num_classes),\
