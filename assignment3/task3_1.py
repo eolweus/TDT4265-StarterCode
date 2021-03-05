@@ -8,8 +8,9 @@ from dataloaders import load_cifar10
 from trainer import Trainer, compute_loss_and_accuracy
 
 
-class Conv_with_pool():
+class Conv_with_pool(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding) -> None:
+        super(Conv_with_pool, self).__init__()
         self.layer = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
             nn.ReLU(inplace=True),
@@ -45,7 +46,7 @@ class ExampleModel(nn.Module):
 
         in_channels = image_channels
         for filter_size in num_filters:
-            self.new_filter_extractor.append(Conv_with_pool(
+            self.new_filter_extractor.add_module(Conv_with_pool(
                 in_channels, 
                 filter_size, 
                 kernel_size,
