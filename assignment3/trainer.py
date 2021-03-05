@@ -54,7 +54,8 @@ class Trainer:
                  early_stop_count: int,
                  epochs: int,
                  model: torch.nn.Module,
-                 dataloaders: typing.List[torch.utils.data.DataLoader]):
+                 dataloaders: typing.List[torch.utils.data.DataLoader],
+                 optimizer: torch.optim.Optimizer=torch.optim.SGD):
         """
             Initialize our trainer class.
         """
@@ -72,7 +73,7 @@ class Trainer:
         print(self.model)
 
         # Define our optimizer. SGD = Stochastich Gradient Descent
-        self.optimizer = torch.optim.SGD(self.model.parameters(),
+        self.optimizer = optimizer(self.model.parameters(),
                                          self.learning_rate)
 
         # Load our dataset

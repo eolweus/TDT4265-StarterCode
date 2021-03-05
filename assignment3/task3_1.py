@@ -4,6 +4,7 @@ from torch.nn.modules.activation import ReLU
 import utils
 import torch
 from torch import nn
+import torch.optim as optim
 from dataloaders import load_cifar10
 from trainer import Trainer, compute_loss_and_accuracy
 
@@ -13,8 +14,24 @@ class Conv_with_pool(nn.Module):
         super(Conv_with_pool, self).__init__()
         self.layer = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2 ,stride=2)
+        )
+    
+    def forward(self, x):
+        return self.layer(x)
+
+class Conv_conv_pool(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding) -> None:
+        super(Conv_conv_pool, self).__init__()
+        self.layer = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
+            nn.BatchNorm2d(out_channels),                               
+            nn.ReLU(inplace=True),                                      
+            nn.Conv2d(out_channels, out_channels, kernel_size, stride, padding, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)
         )
     
     def forward(self, x):
@@ -35,55 +52,69 @@ class ExampleModel(nn.Module):
         """
         super().__init__()
         # TODO: Implement this function (Task  2a)
-        num_filters = [32, 64, 128]  # Set number of filters in first conv layer
+        num_filters = [16, 32, 64]  # Set number of filters in first conv layer
         kernel_size = 5
-        padding = 2
+        self.padding = 2
 
 
         self.num_classes = num_classes
 
-        self.new_filter_extractor = nn.Sequential()
+        # self.new_feature_extractor = nn.Sequential()
 
+        # in_channels = image_channels
+        # for filter_size in num_filters:
+        #     module = Conv_with_pool(
+        #         in_channels, 
+        #         filter_size, 
+        #         kernel_size,
+        #         stride=1,
+        #         padding=self.padding)
+        #     self.new_feature_extractor.add_module(name=f"filter_{filter_size}",module=module)
+        #     in_channels = filter_size
+        
+        conv_list = []
         in_channels = image_channels
         for filter_size in num_filters:
-            self.new_filter_extractor.add_module(Conv_with_pool(
+            module = Conv_conv_pool(
                 in_channels, 
                 filter_size, 
                 kernel_size,
                 stride=1,
-                padding=padding))
+                padding=self.padding)
+            conv_list.append(module)
             in_channels = filter_size
+        self.new_feature_extractor = nn.Sequential(*conv_list)
 
         # Define the convolutional layers
-        self.feature_extractor = nn.Sequential(
-            nn.Conv2d(
-                in_channels=image_channels,
-                out_channels=num_filters[0],
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(
-                in_channels=num_filters[0],
-                out_channels=num_filters[1],
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(
-                in_channels=num_filters[1],
-                out_channels=num_filters[2],
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
-        )
+        # self.feature_extractor = nn.Sequential(
+        #     nn.Conv2d(
+        #         in_channels=image_channels,
+        #         out_channels=num_filters[0],
+        #         kernel_size=5,
+        #         stride=1,
+        #         padding=2
+        #     ),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=2, stride=2),
+        #     nn.Conv2d(
+        #         in_channels=num_filters[0],
+        #         out_channels=num_filters[1],
+        #         kernel_size=5,
+        #         stride=1,
+        #         padding=2
+        #     ),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=2, stride=2),
+        #     nn.Conv2d(
+        #         in_channels=num_filters[1],
+        #         out_channels=num_filters[2],
+        #         kernel_size=5,
+        #         stride=1,
+        #         padding=2
+        #     ),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=2, stride=2)
+        # )
         self.num_output_features = num_filters[-1]*4*4
         # Initialize our last fully connected layer
         # Inputs all extracted features from the convolutional layers
@@ -92,7 +123,9 @@ class ExampleModel(nn.Module):
         # included with nn.CrossEntropyLoss
         self.classifier = nn.Sequential(
             nn.Linear(in_features=self.num_output_features, out_features=64),
+            nn.ReLU(),
             nn.Linear(in_features=64, out_features=num_classes),
+
         )
 
     def forward(self, x):
@@ -141,6 +174,7 @@ if __name__ == "__main__":
     learning_rate = 5e-2
     early_stop_count = 4
     dataloaders = load_cifar10(batch_size)
+    optimizer = optim.SGD
     model = ExampleModel(image_channels=3, num_classes=10)
     trainer = Trainer(
         batch_size,
@@ -148,18 +182,19 @@ if __name__ == "__main__":
         early_stop_count,
         epochs,
         model,
-        dataloaders
+        dataloaders,
+        optimizer
     )
     trainer.train()
-    create_plots(trainer, "task2")
+    create_plots(trainer, "task3_1")
     dataloader_train, dataloader_val, dataloader_test = dataloaders
-    train_acc = compute_loss_and_accuracy(
+    loss, train_acc = compute_loss_and_accuracy(
         dataloader_train, model, torch.nn.CrossEntropyLoss()
     )
-    val_acc = compute_loss_and_accuracy(
+    loss, val_acc = compute_loss_and_accuracy(
         dataloader_val, model, torch.nn.CrossEntropyLoss()
     )
-    test_acc = compute_loss_and_accuracy(
+    loss, test_acc = compute_loss_and_accuracy(
         dataloader_test, model, torch.nn.CrossEntropyLoss()
     )
 
