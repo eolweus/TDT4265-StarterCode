@@ -37,9 +37,9 @@ def compute_loss_and_accuracy(
             # Compute Loss and Accuracy
             total_loss += loss_criterion(output_probs, Y_batch)
             total_correct += num_correct_preds(output_probs, Y_batch)
-            total_images += X_batch.shape
+            total_images += X_batch.shape[0]
     average_loss = total_loss/len(dataloader)
-    accuracy = total_correct/len(dataloader.dataset)
+    accuracy = total_correct/total_images
 
     return average_loss, accuracy
 
