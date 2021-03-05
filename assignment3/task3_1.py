@@ -52,26 +52,13 @@ class ExampleModel(nn.Module):
         """
         super().__init__()
         # TODO: Implement this function (Task  2a)
-        num_filters = [32, 64, 128]  # Set number of filters in first conv layer
+        num_filters = [16, 32, 64]  # Set number of filters in first conv layer
         kernel_size = 3
         self.padding = 1
 
 
         self.num_classes = num_classes
 
-        # self.new_feature_extractor = nn.Sequential()
-
-        # in_channels = image_channels
-        # for filter_size in num_filters:
-        #     module = Conv_with_pool(
-        #         in_channels, 
-        #         filter_size, 
-        #         kernel_size,
-        #         stride=1,
-        #         padding=self.padding)
-        #     self.new_feature_extractor.add_module(name=f"filter_{filter_size}",module=module)
-        #     in_channels = filter_size
-        
         conv_list = []
         in_channels = image_channels
         for filter_size in num_filters:
@@ -85,36 +72,6 @@ class ExampleModel(nn.Module):
             in_channels = filter_size
         self.new_feature_extractor = nn.Sequential(*conv_list)
 
-        # Define the convolutional layers
-        # self.feature_extractor = nn.Sequential(
-        #     nn.Conv2d(
-        #         in_channels=image_channels,
-        #         out_channels=num_filters[0],
-        #         kernel_size=5,
-        #         stride=1,
-        #         padding=2
-        #     ),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=2, stride=2),
-        #     nn.Conv2d(
-        #         in_channels=num_filters[0],
-        #         out_channels=num_filters[1],
-        #         kernel_size=5,
-        #         stride=1,
-        #         padding=2
-        #     ),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=2, stride=2),
-        #     nn.Conv2d(
-        #         in_channels=num_filters[1],
-        #         out_channels=num_filters[2],
-        #         kernel_size=5,
-        #         stride=1,
-        #         padding=2
-        #     ),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=2, stride=2)
-        # )
         self.num_output_features = num_filters[-1]*4*4
         # Initialize our last fully connected layer
         # Inputs all extracted features from the convolutional layers
@@ -170,11 +127,11 @@ if __name__ == "__main__":
     utils.set_seed(0)
     epochs = 10
     batch_size = 64
-    learning_rate = 0.001
-    early_stop_count = 6
+    learning_rate = 5e-2
+    early_stop_count = 4
     dataloaders = load_cifar10(batch_size)
-    optimizer = optim.Adam
-    weight_decay = 1e-5
+    optimizer = optim.SGD
+    weight_decay = 0
     model = ExampleModel(image_channels=3, num_classes=10)
     trainer = Trainer(
         batch_size,
@@ -187,7 +144,7 @@ if __name__ == "__main__":
         optimizer
     )
     trainer.train()
-    create_plots(trainer, "task3_Adam_2")
+    create_plots(trainer, "task3_1")
     dataloader_train, dataloader_val, dataloader_test = dataloaders
     model.eval()
     loss, train_acc = compute_loss_and_accuracy(
