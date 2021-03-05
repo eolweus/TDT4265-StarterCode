@@ -1,10 +1,24 @@
 import pathlib
 import matplotlib.pyplot as plt
+from torch.nn.modules.activation import ReLU
 import utils
 import torch
 from torch import nn
 from dataloaders import load_cifar10
 from trainer import Trainer, compute_loss_and_accuracy
+
+
+class conv_relu_max_pool():
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding) -> None:
+        self.layer = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2 ,stride=2)
+        )
+    
+    def forward(self, x):
+        return self.layer(x)
+
 
 
 class ExampleModel(nn.Module):
@@ -21,8 +35,16 @@ class ExampleModel(nn.Module):
         super().__init__()
         # TODO: Implement this function (Task  2a)
         num_filters = [32, 64, 128]  # Set number of filters in first conv layer
+        kernel_size = 5
+
 
         self.num_classes = num_classes
+
+        self.new_filter_extractor = nn.Sequential()
+
+        in_channels = image_channels
+        for filter_size in num_filters:
+            self.new_filter_extractor.append()
 
         # Define the convolutional layers
         self.feature_extractor = nn.Sequential(
