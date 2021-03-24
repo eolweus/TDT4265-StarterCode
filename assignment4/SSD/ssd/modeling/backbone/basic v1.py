@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
 
-# With batch normalization for some layers and more layers in the first sequential
-
 class DoubleConvReLU(nn.Module):
     def __init__(self, in_channels, intermediate_channels, out_channels, kernel_size=3, padding=1, stride_2=2) -> None:
         super(DoubleConvReLU, self).__init__()
         self.layer = nn.Sequential(
+            nn.BatchNorm2d(in_channels),
             nn.ReLU(),
             nn.Conv2d(in_channels, intermediate_channels, kernel_size, 1, padding, bias=False),
             nn.BatchNorm2d(intermediate_channels),                             
@@ -39,33 +38,20 @@ class BasicModel(nn.Module):
         self.output_feature_shape = cfg.MODEL.PRIORS.FEATURE_MAPS
 
         self.layers = nn.ModuleList()
-        intermediate_channels = [256, 512, 256, 256, 128]
+        intermediate_channels = [128, 256, 128, 128, 128]
 
         self.layers.append(nn.Sequential(
-            nn.BatchNorm2d(image_channels),
-            nn.Conv2d(image_channels, 32, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(image_channels, 32, kernel_size=3, stride=1, padding=1),
             nn.MaxPool2d(2, 2),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
             nn.MaxPool2d(2, 2),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(256, self.output_channels[0], kernel_size=3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(self.output_channels[0])
+            nn.Conv2d(64, self.output_channels[0], kernel_size=3, stride=2, padding=1)
         ))
+        # self.layers.append()
 
         for i in range(4):
             self.layers.append(DoubleConvReLU(
@@ -76,10 +62,9 @@ class BasicModel(nn.Module):
         
         self.layers.append(nn.Sequential(
             nn.ReLU(),
-            nn.Conv2d(self.output_channels[4], 128, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(self.output_channels[4], 128, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
-            nn.Conv2d(128, self.output_channels[5], kernel_size=3, stride=1, padding=0, bias=False)
+            nn.Conv2d(128, self.output_channels[5], kernel_size=3, stride=1, padding=0)
         ))
         print(self.layers)
 
