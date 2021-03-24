@@ -48,6 +48,7 @@ class BasicModel(nn.Module):
             nn.ReLU(),
             nn.Conv2d(64, self.output_channels[0], kernel_size=3, stride=2, padding=1)
         ))
+        # self.layers.append()
 
         for i in range(4):
             self.layers.append(DoubleConvReLU(
@@ -56,13 +57,13 @@ class BasicModel(nn.Module):
                 out_channels=self.output_channels[i+1],
             ))
         
-        self.layers.append(nn.Conv2d(DoubleConvReLU(
-                                    in_channels=self.output_channels[4],
-                                    intermediate_channels=intermediate_channels[-1],
-                                    out_channels=self.output_channels[5],
-                                    padding=1,
-                                    stride_2=1
-        )))
+        self.layers.append(nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(self.output_channels[4], 128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, self.output_channels[5], kernel_size=3, stride=1, padding=0)
+        ))
+        print(self.layers)
 
 
     def forward(self, x):
@@ -85,7 +86,7 @@ class BasicModel(nn.Module):
 
         for idx, feature in enumerate(out_features):
             w, h = self.output_feature_shape[idx]
-            expected_shape = (out_channel, h, w)
+            expected_shape = (self.output_channels[idx], h, w)
             assert feature.shape[1:] == expected_shape, \
                 f"Expected shape: {expected_shape}, got: {feature.shape[1:]} at output IDX: {idx}"
         return tuple(out_features)
